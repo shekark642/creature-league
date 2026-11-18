@@ -12,8 +12,9 @@ The full design lives in the design doc. This repository holds the code.
 | `simulator/` | The C++17 battle simulator, its command-line tool `clsim`, and tests |
 | `examples/` | A sample 4v4 battle setup |
 | `docs/` | The replay format the league server and Unreal share |
+| `app/` | The fantasy league web app (Node server and phone-friendly web pages) |
 
-Later steps add the web app (`app/`) and the Unreal project (`game/`).
+A later step adds the Unreal project (`game/`).
 
 ## The battle simulator
 
@@ -47,6 +48,29 @@ cmake --build build
 ```
 
 Run from the repository root, or pass `--data path/to/data` first.
+
+## The league app
+
+The web app runs whole fantasy seasons. You sign up, catch creatures, trade with other players, create or join a league with a code, snake-draft from the league pool, set a 4v4 lineup on the stadium grid, and play weekly matchups through to a 2-week playoff and a champion. Every battle is run by `clsim`. The app never computes a result itself, and each stored replay can be watched in the browser.
+
+It needs Node 22.5 or newer (it uses Node's built-in SQLite) and a built simulator.
+
+```sh
+cmake -S . -B build && cmake --build build   # build clsim first
+cd app
+npm install
+npm start          # http://localhost:3000
+npm test           # API tests, including a full bot season through the real simulator
+```
+
+Settings: `PORT` (default 3000), `DB_PATH` (default `app/data/league.db`) and `CLSIM_PATH` if the simulator lives somewhere else.
+
+What's real and what's a stand-in for now:
+
+- **Catching** is a simple explore-and-throw screen per biome. It stands in for the Unreal open world, which will write catches to the same table.
+- **Weekly locks** are a commissioner's "Play this week" button. A scheduler can call the same code later.
+- **Bots** fill empty seats so one person can play a whole season. They have access to every species.
+- League rules (pool by rarity or habitat, roster size, season length, which stats battles use, and whether players must have caught a species to field it) are set when the league is created.
 
 ## Balancing
 

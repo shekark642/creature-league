@@ -1,0 +1,65 @@
+{
+  "elements": [
+    "ember",
+    "tide",
+    "grove",
+    "stone",
+    "gale",
+    "volt",
+    "frost",
+    "venom"
+  ],
+  "strongMultiplierPermille": 1500,
+  "weakMultiplierPermille": 667,
+  "strongAgainst": {
+    "ember": [
+      "grove",
+      "frost"
+    ],
+    "tide": [
+      "ember",
+      "venom"
+    ],
+    "grove": [
+      "tide",
+      "stone"
+    ],
+    "stone": [
+      "volt",
+      "venom"
+    ],
+    "gale": [
+      "stone",
+      "frost"
+    ],
+    "volt": [
+      "gale",
+      "ember"
+    ],
+    "frost": [
+      "tide",
+      "volt"
+    ],
+    "venom": [
+      "grove",
+      "gale"
+    ]
+  },
+  "weather": {
+    "clear": {},
+    "rain": {
+      "tide": 1150,
+      "ember": 850
+    },
+    "sun": {
+      "ember": 1150,
+      "tide": 850
+    },
+    "snow": {
+      "frost": 1150
+    },
+    "storm": {
+      "volt": 1150
+    }
+  }
+}

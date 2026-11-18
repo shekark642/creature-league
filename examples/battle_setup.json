@@ -1,0 +1,25 @@
+{
+  "stadium": "riverside_arena",
+  "weather": "clear",
+  "seed": 20261118,
+  "teams": [
+    {
+      "name": "Ridge Runners",
+      "members": [
+        {"species": "skyreave", "individualSeed": 11, "spot": {"col": 0, "row": 0}, "tactic": "disruptor"},
+        {"species": "bramblebear", "individualSeed": 12, "spot": {"col": 1, "row": 1}, "tactic": "guardian"},
+        {"species": "rillotter", "individualSeed": 13, "spot": {"col": 1, "row": 0}, "tactic": "aggressive"},
+        {"species": "sporeling", "individualSeed": 14, "spot": {"col": 0, "row": 2}, "tactic": "guardian"}
+      ]
+    },
+    {
+      "name": "Ember Tide",
+      "members": [
+        {"species": "cindermaw", "individualSeed": 21, "spot": {"col": 1, "row": 1}, "tactic": "aggressive"},
+        {"species": "stormheron", "individualSeed": 22, "spot": {"col": 0, "row": 0}, "tactic": "disruptor"},
+        {"species": "hoarvixen", "individualSeed": 23, "spot": {"col": 0, "row": 1}, "tactic": "skirmisher"},
+        {"species": "brineback", "individualSeed": 24, "spot": {"col": 1, "row": 0}, "tactic": "guardian"}
+      ]
+    }
+  ]
+}
