@@ -214,7 +214,7 @@ async function viewCollection() {
   if (encounter) {
     $('#throw').onclick = () => act(() => POST('/api/catch', { encounterId: encounter.id }), (r) => {
       const n = sp(r.species).name;
-      return r.result === 'caught' ? `Caught ${n}!` : r.result === 'fled' ? `${n} ran away.` : `${n} broke free. ${r.attemptsLeft} tries left.`;
+      return r.result === 'caught' ? `Caught ${n}!` : r.result === 'fled' ? `${n} ran away.` : `${n} broke free. ${r.attemptsLeft} ${r.attemptsLeft === 1 ? 'try' : 'tries'} left.`;
     });
     $('#leave').onclick = () => act(() => POST('/api/explore', { biome: encounter.biome }));
   }
@@ -397,7 +397,7 @@ function paneDraft(st, pane) {
       </div>
       <div class="card"><ul class="list">${shown.map((p) => `
         <li>${creatureLine(p.species, myTurn ? `<button class="small primary" data-pick="${p.id}">Draft</button>` : '')}
-          <div class="small">Copy ${p.copy + 1} of 3 · <b>${title(p.attitude)}</b> · total ${statTotal(p.stats)} ${L.settings.requireAccess && !access.has(p.species) ? '· <span style="color:var(--warn)">not caught yet</span>' : ''}</div>
+          <div class="small">Copy ${p.copy} of 3 · <b>${title(p.attitude)}</b> · total ${statTotal(p.stats)} ${L.settings.requireAccess && !access.has(p.species) ? '· <span style="color:var(--warn)">not caught yet</span>' : ''}</div>
           ${statsRow(p.stats)}</li>`).join('')}</ul></div>` : ''}
     <div class="card small"><h3>Draft board</h3><ul class="list">${st.pool.filter((p) => p.draftedPick).sort((a, b) => b.draftedPick - a.draftedPick).map((p) => `<li>${p.draftedPick}. ${esc(teamName(st, p.ownerId))}: ${esc(sp(p.species).name)}</li>`).join('') || '<li class="muted">No picks yet</li>'}</ul></div>`;
   const lid = L.id;
