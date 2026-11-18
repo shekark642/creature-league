@@ -4,6 +4,9 @@
 //   clsim [--data DIR] advise SETUP.json
 //   clsim [--data DIR] roll SPECIES SEED
 //   clsim [--data DIR] species
+//   clsim [--data DIR] pool SEED            (3 individuals per species, as JSON)
+//   clsim [--data DIR] advise-json FILE|-   (move advice for many creatures, as JSON)
+// Any FILE argument can be "-" to read from standard input (used by the league server).
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -17,12 +20,25 @@ using namespace cl;
 
 namespace {
 
+std::string readInput(const std::string& path) {
+    if (path != "-") return readFile(path);
+    std::string all, line;
+    while (std::getline(std::cin, line)) all += line + "\n";
+    return all;
+}
+
+Individual creatureFrom(const Catalog& cat, const Json& j) {
+    return rollIndividual(cat, j.at("species").asString(), static_cast<uint64_t>(j.at("individualSeed").asInt()));
+}
+
 int usage() {
     std::cerr << "usage:\n"
                  "  clsim [--data DIR] battle SETUP.json [--seed N] [--summary]\n"
                  "  clsim [--data DIR] advise SETUP.json\n"
                  "  clsim [--data DIR] roll SPECIES SEED\n"
-                 "  clsim [--data DIR] species\n";
+                 "  clsim [--data DIR] species\n"
+                 "  clsim [--data DIR] pool SEED\n"
+                 "  clsim [--data DIR] advise-json FILE|-\n";
     return 2;
 }
 
@@ -109,11 +125,55 @@ int main(int argc, char** argv) {
             return 0;
         }
 
+        if (cmd == "pool") {
+            // Individual seeds stay below 2^53 so JavaScript can hold them exactly:
+            // seed = poolSeed * 1000 + speciesIndex * 3 + copy.
+            if (args.size() < 2) return usage();
+            const uint64_t poolSeed = std::strtoull(args[1].c_str(), nullptr, 10);
+            Json out = Json::array();
+            uint64_t index = 0;
+            for (const auto& kv : cat.allSpecies()) {
+                for (uint64_t copy = 0; copy < 3; ++copy) {
+                    const uint64_t seed = poolSeed * 1000 + index * 3 + copy;
+                    Json j = rollIndividual(cat, kv.first, seed).toJson();
+                    j.set("copy", static_cast<int>(copy + 1));
+                    out.push(j);
+                }
+                ++index;
+            }
+            std::cout << out.dump() << "\n";
+            return 0;
+        }
+
+        if (cmd == "advise-json") {
+            if (args.size() < 2) return usage();
+            const Json req = Json::parse(readInput(args[1]));
+            const Weather w = req.has("weather") ? parseEnum<Weather>(req.at("weather").asString()) : Weather::Clear;
+            std::vector<Individual> opp;
+            for (const Json& o : req.at("opponents").asArray()) opp.push_back(creatureFrom(cat, o));
+            Json out = Json::array();
+            for (const Json& c : req.at("creatures").asArray()) {
+                Individual ind = creatureFrom(cat, c);
+                Json moves = Json::array();
+                for (const MoveAdvice& a : adviseMoves(cat, ind, opp, w)) {
+                    Json m = Json::object();
+                    m.set("move", a.moveId).set("label", toString(a.label)).set("score", a.score);
+                    moves.push(m);
+                }
+                Json entry = Json::object();
+                entry.set("species", ind.speciesId).set("individualSeed", ind.seed).set("moves", moves);
+                out.push(entry);
+            }
+            std::cout << out.dump() << "\n";
+            return 0;
+        }
+
         if (cmd == "battle" || cmd == "advise") {
             if (args.size() < 2) return usage();
-            BattleSetup setup = BattleSetup::fromJson(cat, Json::parse(readFile(args[1])));
-            bool summary = false;
+            BattleSetup setup = BattleSetup::fromJson(cat, Json::parse(readInput(args[1])));
+            bool summary = false, compact = false;
             for (size_t i = 2; i < args.size(); ++i) {
+                if (args[i] == "--compact") { compact = true; continue; }
                 if (args[i] == "--seed" && i + 1 < args.size()) setup.seed = std::strtoull(args[++i].c_str(), nullptr, 10);
                 else if (args[i] == "--summary") summary = true;
             }
@@ -134,7 +194,7 @@ int main(int argc, char** argv) {
             }
             BattleResult r = runBattle(cat, setup);
             if (summary) printSummary(cat, r);
-            else std::cout << r.replay.dump(2) << "\n";
+            else std::cout << r.replay.dump(compact ? -1 : 2) << "\n";
             return 0;
         }
         return usage();
